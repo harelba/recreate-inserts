@@ -4,6 +4,8 @@ This utility gets the output of a Mysql SELECT query and generates a set of matc
 
 The major difference between this and mysqldump is the fact that the user can be selective regarding what is copied. mysqldump is useful (and fast), but it is only meant for dumping complete databases. 
 
+It is important to note that no DB connection of any kind is performed. The utility just outputs the INSERT command text lines. These commands can be fed to a mysql client for execution.
+
 The utility supports batching of INSERTs, for better efficiency.
 
 # Example
