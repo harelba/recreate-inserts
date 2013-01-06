@@ -2,6 +2,15 @@
 
 This utility gets the output of a Mysql SELECT query and generates a set of matching INSERT commands. It can be used for copying selected parts into another table with identical structure, or to copy parts of a table between different database instances.
 
+The major difference between this and mysqldump is the fact that the user can be selective regarding what is copied. mysqldump is useful (and fast), but it is only meant for dumping complete databases. 
+
+The utility supports batching of INSERTs, for better efficiency.
+
+# Example
+     echo "select * from mydb.my_table limit 100" | ./recreate-inserts -b 20 mydb.my_other_table
+
+     This example will take a maximum of 100 rows from mydb.mytable and generate INSERT commands for table my_other_table. Each insert command will contain a maximum of 20 rows.
+
 # Usage
 		Usage: 
 			recreate-inserts [options] <output_table_name>
@@ -19,12 +28,9 @@ This utility gets the output of a Mysql SELECT query and generates a set of matc
 
 ## Usage Details
 
+Batch size is controlled by the -b option.
+
 The first row of input is expected to have the table's column names (as in mysql's output). The user can provide his own set of column names using the -c option.
-
-Example:
-  echo "select * from mydb.my_table limit 100" | ./recreate-inserts -b 20 mydb.my_other_table
-
-  This example will take a maximum of 100 rows from mydb.mytable and generate INSERT commands for table my_other_table. Each insert command will contain a maximum of 20 rows.
 
 The utility uses the default \t delimiter of mysql. If you use other delimiters, use the -d option.
 
