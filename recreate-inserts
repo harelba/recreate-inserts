@@ -1,0 +1,116 @@
+#!/usr/bin/python
+
+# recreate-inserts
+# 
+# This utility get a mysql SELECT query output and generates a set of matching INSERT commands.
+#
+# First row is expected to have the table's column names (as in mysql's output). The user can provide 
+# his own set of column names using the -c option.
+#
+# Example:
+#   echo "select * from mydb.my_table limit 100" | ./recreate-inserts -b 20 mydb.my_other_table
+#
+#   This example will take a maximum of 100 rows from mydb.mytable and generate INSERT commands for table my_other_table.
+#   Each insert command will contain a maximum of 20 rows.
+#
+# The utility uses the default \t delimiter of mysql. If you use other delimiters, use the -d option.
+#
+# If needed, turn on relaxed mode by using -r. It will cause missing fields to be filled with nulls and extra fields to be ignored.
+#
+# NOTE: Please note that there is no way to determine the table name from the output, so it must be provided as an argument
+#       to the script. Look at it as a feature that allows a simple way to copy rows between tables with identical structure.
+#
+# Author: Harel Ben-Attia (@harelba) GitHub (https://github.com/harelba)
+#
+
+import os,sys
+from optparse import OptionParser
+import traceback as tb
+
+parser = OptionParser(usage="""
+	%prog [options] <output_table_name>
+
+	This utility get a mysql SELECT query output and generates a set of matching INSERT commands.
+
+	First row is expected to have the table's column names (as in mysql's output). The user can provide 
+	his own set of column names using the -c option.
+
+	Example:
+	  echo "select * from mydb.my_table limit 100" | ./recreate-inserts -b 20 mydb.my_other_table
+
+	  This example will take a maximum of 100 rows from mydb.mytable and generate INSERT commands for table my_other_table.
+	  Each insert command will contain a maximum of 20 rows.
+
+	The utility uses the default \t delimiter of mysql. If you use other delimiters, use the -d option.
+	
+	If needed, turn on relaxed mode by using -r. It will cause missing fields to be filled with nulls and extra fields to be ignored.
+
+	NOTE: Please note that there is no way to determine the table name from the output, so it must be provided as an argument
+	      to the script. Look at it as a feature that allows a simple way to copy rows between tables with identical structure.
+""")
+
+parser.add_option("-b","--batch",dest="batch",default='100',
+                help="Batch size - how many rows to put in each insert.")
+parser.add_option("-d","--delimiter",dest="delimiter",default='\t',
+                help="Delimiter")
+parser.add_option("-c","--column-list",dest="column_list",default=None,
+                help="User-set column list (instead of reading the list from the first row)")
+parser.add_option("-r","--relaxed",dest="relaxed",default=False,action="store_true",
+                help="Fill with nulls missing fields or trim extra fields")
+
+
+(options,args) = parser.parse_args()
+
+if len(args) != 1:
+    parser.print_help()
+    sys.exit(1)
+
+table_name = args[0]
+delimiter = options.delimiter
+column_list = options.column_list
+batch_size = int(options.batch)
+relaxed = options.relaxed
+
+if column_list is None:
+	column_names = sys.stdin.readline().strip().split(delimiter)
+else:
+	column_names = column_names.split(",")
+column_list = ",".join(["`%s`" % c for c in column_names])
+
+try:
+	batch = []
+	line = sys.stdin.readline()
+	while line:
+		line = line.strip()
+		parts = line.split(delimiter)
+
+		if len(parts) != len(column_names):
+			if not relaxed:
+				print >>sys.stderr,"number of columns does not match the number of actual fields in the data (%s vs %s) " % (len(parts),len(column_names))
+				sys.exit(1)
+			if len(parts) > len(column_names):
+				print >>sys.stderr,"Too many fields in row (%s vs %s)" % (len(parts),len(column_names))
+				parts = parts[:-(len(parts)-len(column_names))]
+			else:
+				print >>sys.stderr,"Not enough fields in row (%s vs %s)" % (len(parts),len(column_names))
+				parts += ['NULL' for x in range(len(column_names)-len(parts))]
+	
+		values = "(%s)" % ",".join(["'%s'" % x for x in parts])
+		
+		batch.append(values)
+
+		if len(batch) >= batch_size:
+			all_values = ",".join(batch)
+			print "INSERT INTO %(table_name)s (%(column_list)s) VALUES %(all_values)s;" % vars()
+			batch = []
+	
+		line = sys.stdin.readline()
+	
+	if len(batch) > 0:
+		all_values = ",".join(batch)
+		print "INSERT INTO %(table_name)s (%(column_list)s) VALUES %(all_values)s;" % vars()
+except KeyboardInterrupt, e:
+	pass
+	
+	
+
