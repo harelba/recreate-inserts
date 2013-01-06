@@ -2,11 +2,13 @@
 
 This utility gets the output of a Mysql SELECT query and generates a set of matching INSERT commands. It can be used for copying selected parts into another table with identical structure, or to copy parts of a table between different database instances.
 
-The major difference between this and mysqldump is the fact that the user can be selective regarding what is copied. mysqldump is useful (and fast), but it is only meant for dumping complete databases. 
-
 It is important to note that no DB connection of any kind is performed. The utility just outputs the INSERT command text lines. These commands can be fed to a mysql client for execution.
 
 The utility supports batching of INSERTs, for better efficiency.
+
+## Difference from other tools
+`mysqldump` - The major difference between this and mysqldump is the fact that the user can be selective regarding what is copied. mysqldump is useful (and fast), but it is only meant for dumping complete databases. 
+`INSERT...SELECT` - Insert-Select commands are very powerful, but they require a tight coupling between the source and target. Both have to be on the same instance. This tool allows copying selected data between database instances.
 
 # Example
      echo "select * from mydb.my_table limit 100" | ./recreate-inserts -b 20 mydb.my_other_table
