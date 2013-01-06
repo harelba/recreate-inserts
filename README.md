@@ -1,6 +1,6 @@
 # Purpose 
 
-This utility gets the output of a Mysql SELECT query and generates a set of matching INSERT commands.
+This utility gets the output of a Mysql SELECT query and generates a set of matching INSERT commands. It can be used for copying selected parts into another table with identical structure, or to copy parts of a table between different database instances.
 
 # Usage
 		Usage: 
