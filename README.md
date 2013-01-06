@@ -9,7 +9,7 @@ The utility supports batching of INSERTs, for better efficiency.
 # Example
      echo "select * from mydb.my_table limit 100" | ./recreate-inserts -b 20 mydb.my_other_table
 
-     This example will take a maximum of 100 rows from mydb.mytable and generate INSERT commands for table my_other_table. Each insert command will contain a maximum of 20 rows.
+This example will take a maximum of 100 rows from mydb.mytable and generate INSERT commands for table my_other_table. Each insert command will contain a maximum of 20 rows.
 
 # Usage
 		Usage: 
