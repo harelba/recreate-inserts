@@ -7,7 +7,7 @@ It is important to note that no DB connection of any kind is performed. The util
 The utility supports batching of INSERTs, for better efficiency.
 
 ## Difference from other tools
-`mysqldump` - The major difference between this and mysqldump is the fact that the user can be selective regarding what is copied. mysqldump is useful (and fast), but it is only meant for dumping complete databases. 
+`mysqldump` - The two major differences are that with recreate-inserts it is possible to reuse existing text data, and being able to use a real SELECT query instead of passing parameters to mysqldump.
 
 `INSERT...SELECT` - Insert-Select commands are very powerful, but they require a tight coupling between the source and target. Both have to be on the same DB instance. This tool allows copying selected data between separate database instances or over the wire.
 
